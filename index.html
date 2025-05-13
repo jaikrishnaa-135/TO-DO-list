@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<head>
+  <title>Rust Test App</title>
+  <style>
+    body {
+      font-family: fantasy;
+      font-size: 30px;
+      background-color: blueviolet;
+      text-align: center;
+    }
+    input, button {
+      font-family: fantasy;
+      font-size: 20px;
+      color: blue;
+      width: 300px;
+      margin: 5px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 0.5em 0;
+    }
+    .completed {
+    color: green;
+    text-decoration: line-through;
+}
+
+  </style>
+</head>
+<body>
+  <h1>TO DO LIST</h1>
+  <input type="text" id="testInput" placeholder="New item" />
+  <button onclick="addTest()">Add</button>
+  <br>
+  <ul id="testList"></ul>
+  <pre>
+  <script>
+    async function fetchTests() {
+      const res = await fetch("http://127.0.0.1:8080/api/tests");
+      const tests = await res.json();
+      const list = document.getElementById("testList");
+      list.innerHTML = "";
+      tests.forEach((test,i) => {
+        const li = document.createElement("li");
+        li.textContent =  `${i+1}. ${test.title}`;
+        li.className = test.completed ? "completed" : "";
+
+
+    const updateBtn = document.createElement("button");
+    updateBtn.textContent = "Update";
+    updateBtn.onclick = async () => {
+      await fetch(`http://127.0.0.1:8080/api/tests/update/${test.id}`, {
+        method: "PUT", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }) 
+      });
+      fetchTests();
+    };
+
+
+    const completeBtn = document.createElement("button");
+    completeBtn.textContent = "Complete";
+    completeBtn.onclick = async () => {
+      await fetch(`http://127.0.0.1:8080/api/tests/complete/${test.id}`, {
+        method: "PUT", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: 1 }) 
+      });
+      fetchTests();
+    };
+
+
+
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete";
+        delBtn.className = "delete-btn";
+        delBtn.onclick = async () => {
+          await fetch(`http://127.0.0.1:8080/api/tests/${test.id}`, {
+            method: "DELETE"
+          });
+          fetchTests();
+        };
+        li.appendChild(completeBtn);
+        li.appendChild(delBtn);
+        list.appendChild(li);
+      });
+    }
+
+    async function addTest() {
+      const input = document.getElementById("testInput");
+      const title = input.value.trim();
+      if (!title) return;
+
+      await fetch("http://127.0.0.1:8080/api/tests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title })
+      });
+
+      input.value = "";
+      fetchTests();
+    }
+    fetchTests();
+  </script></pre>
+</body>
+</html>
