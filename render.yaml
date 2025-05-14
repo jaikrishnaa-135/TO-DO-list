@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: todo-backend
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        value: YOUR_MYSQL_CONNECTION_STRING
