@@ -36,8 +36,7 @@ async fn update_test(
     let result = sqlx::query!(
         "UPDATE tests SET completed = ? WHERE id = ?",
         update.completed,
-        *test_id
-    )
+        *test_id)
     .execute(pool.get_ref())    
     .await;
 
