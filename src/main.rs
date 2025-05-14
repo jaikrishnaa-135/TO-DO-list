@@ -99,15 +99,22 @@ async fn test_from_rust() -> impl Responder {
 }
 
 #[actix_web::main]
+
+
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
+
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
     let pool = MySqlPoolOptions::new()
         .connect(&database_url)         
         .await
         .expect("Could not connect to MySQL");
-    println!("Server running on http://localhost:8080");
+
+    // Get PORT from environment, default to 8080 if not set (useful for local dev)
+    let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
+    let addr = format!("0.0.0.0:{}", port);
+    println!("Server running on http://{}", addr);
 
     HttpServer::new(move || {
         App::new()
@@ -120,8 +127,7 @@ async fn main() -> std::io::Result<()> {
             .route("/api/tests/complete/{id}", web::put().to(update_test))
             .service(Files::new("/", "./static").index_file("index.html"))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(addr)?  // Now binding to 0.0.0.0:<PORT>
     .run()
     .await
 }
- 
