@@ -18,11 +18,8 @@ struct NewTest {
     title: String,
 }
 
-#[derive(Deserialize)]
-struct UpdateTest {
-    title: String,
-}
- #[derive(Debug)]
+
+#[derive(Debug)]
 #[derive(Deserialize)]
 struct UpdateTestt {
     completed: Option<i8>,
@@ -34,7 +31,7 @@ async fn update_test(
     update: web::Json<UpdateTestt>,
 ) -> impl Responder {
     // let id = test_id.into_inner();
-    let completed = update.completed.unwrap_or(0);
+    let _completed = update.completed.unwrap_or(0);
     println!("{} {:?}",test_id,update);
     let result = sqlx::query!(
         "UPDATE tests SET completed = ? WHERE id = ?",
@@ -50,26 +47,6 @@ async fn update_test(
     }
 }
 
-
-
-async fn change_test(
-    pool: web::Data<MySqlPool>,
-    test_id: web::Path<i32>,
-    update: web::Json<UpdateTest>,
-) -> impl Responder {
-    let result = sqlx::query!(
-        "UPDATE tests SET title = ? WHERE id = ?",
-        update.title,
-        *test_id
-    )
-    .execute(pool.get_ref())    
-    .await;
-
-    match result {
-        Ok(_) => HttpResponse::Ok().body("Test updated"),
-        Err(_) => HttpResponse::InternalServerError().body("Failed to update test"),
-    }
-}
 
 
 async fn get_tests(pool: web::Data<MySqlPool>) -> impl Responder {
@@ -128,10 +105,9 @@ async fn main() -> std::io::Result<()> {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
     let pool = MySqlPoolOptions::new()
-        .connect(&database_url)
+        .connect(&database_url)         
         .await
         .expect("Could not connect to MySQL");
-    
     println!("Server running on http://localhost:8080");
 
     HttpServer::new(move || {
@@ -143,7 +119,6 @@ async fn main() -> std::io::Result<()> {
             .route("/api/tests", web::post().to(add_test))
             .route("/api/tests/{id}", web::delete().to(delete_test))
             .route("/api/tests/complete/{id}", web::put().to(update_test))
-            .route("/api/tests/update/{id}"), web::put().to(change_test)
             .service(Files::new("/", "./static").index_file("index.html"))
     })
     .bind(("127.0.0.1", 8080))?
